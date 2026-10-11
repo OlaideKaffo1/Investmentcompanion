@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { EB_Garamond, IBM_Plex_Mono, Inter } from "next/font/google";
+import { IBM_Plex_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
 // Free stand-ins for the reference's fonts: Inter for CursorGothic (custom,
-// not sold), EB Garamond as-is, IBM Plex Mono for Berkeley Mono (paid).
+// not sold) and IBM Plex Mono for Berkeley Mono (paid).
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const garamond = EB_Garamond({ variable: "--font-garamond", subsets: ["latin"] });
 const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   subsets: ["latin"],
@@ -43,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${garamond.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${plexMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans text-body">{children}</body>
     </html>

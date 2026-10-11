@@ -9,7 +9,7 @@ export default function LoginPage() {
       <div className="flex flex-col gap-3">
         <p className="eyebrow">Private</p>
         <h1 className="text-heading-lg">Investing Companion</h1>
-        <p className="font-serif text-prose text-ink-muted">
+        <p className="text-prose text-ink-muted">
           The companies and markets you follow, in plain English.
         </p>
       </div>

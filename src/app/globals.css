@@ -4,7 +4,7 @@
  * Visual language: "warm parchment" (after the Cursor style reference).
  * Cream paper, warm ink, one ember accent used only on text. Headlines stay
  * at weight 400 and tighten as they grow. Flat surfaces, hairline borders,
- * 4px corners. A serif carries prose; a mono carries labels and metadata.
+ * 4px corners. One sans for everything you read; a mono for labels and metadata.
  *
  * Small-text colours are nudged a shade deeper than the reference so they
  * stay readable on a phone (at least 4.5:1 contrast).
@@ -62,7 +62,6 @@
   --color-crimson: var(--crimson);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-garamond), "Iowan Old Style", Georgia, serif;
   --font-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
 
   --radius-sm: 4px;
@@ -78,8 +77,8 @@
   --text-body-sm--letter-spacing: 0.01em;
   --text-body: 16px;
   --text-body--line-height: 1.5;
-  --text-prose: 18px;
-  --text-prose--line-height: 1.45;
+  --text-prose: 17px;
+  --text-prose--line-height: 1.55;
   --text-heading-sm: 22px;
   --text-heading-sm--line-height: 1.3;
   --text-heading-sm--letter-spacing: -0.005em;

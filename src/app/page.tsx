@@ -37,14 +37,14 @@ export default function Home() {
               </span>
               <div className="flex flex-col gap-1">
                 <p className="text-body font-medium">{item.title}</p>
-                <p className="font-serif text-prose text-ink-muted">{item.note}</p>
+                <p className="text-prose text-ink-muted">{item.note}</p>
               </div>
             </li>
           ))}
         </ol>
       </section>
 
-      <footer className="mt-auto pt-12 font-serif text-body text-ink-muted italic">
+      <footer className="mt-auto pt-12 text-body-sm text-ink-muted">
         This app explains; you decide. Nothing here is financial advice.
       </footer>
     </main>
@@ -89,7 +89,7 @@ async function Greeting() {
       <div className="flex flex-col gap-3">
         <p className="eyebrow">{date}</p>
         <h1 className="text-heading-lg">{greeting}</h1>
-        <p className="font-serif text-prose text-ink-muted">
+        <p className="text-prose text-ink-muted">
           Nothing to read yet. Your companies, briefs and glossary will appear
           here as we build them, starting with your <em className="text-ember-text not-italic">watchlist</em>.
         </p>
