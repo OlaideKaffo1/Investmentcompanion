@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f6f2;
+  --surface: #ffffff;
+  --foreground: #1c1f1d;
+  --muted: #5d6560;
+  --border: #e2e0d8;
+  --accent: #1f6b4f;
+  --accent-foreground: #ffffff;
+  --danger: #b42318;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #111412;
+    --surface: #1a1e1b;
+    --foreground: #e9ece9;
+    --muted: #a0a9a3;
+    --border: #2b312d;
+    --accent: #5cc29a;
+    --accent-foreground: #0d1f17;
+    --danger: #f97066;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans);
+}
+
+html {
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* Keep content clear of the notch and home bar when opened from the home screen. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+@layer components {
+  .field {
+    @apply w-full rounded-xl border border-border bg-surface px-4 py-3 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30;
+  }
+  .btn-primary {
+    @apply w-full rounded-xl bg-accent px-4 py-3 text-base font-medium text-accent-foreground transition-opacity disabled:opacity-60;
+  }
+  .card {
+    @apply rounded-2xl border border-border bg-surface p-4;
+  }
+}
