@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { isAllowedEmail, supabaseKey, supabaseUrl } from "@/lib/env";
 
-const PUBLIC_PATHS = ["/login", "/auth/"];
+// Scheduled jobs under /api/cron check their own secret instead of a login.
+const PUBLIC_PATHS = ["/login", "/auth/", "/api/cron/"];
 
 // Runs before every page request: keeps the login session fresh and sends
 // anyone who isn't the owner to the login page.

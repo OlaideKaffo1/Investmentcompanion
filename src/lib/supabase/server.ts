@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import type { Database } from "@/lib/database.types";
 import { supabaseKey, supabaseUrl } from "@/lib/env";
 
 // A Supabase client for Server Components, Server Actions and Route Handlers.
@@ -8,7 +9,7 @@ import { supabaseKey, supabaseUrl } from "@/lib/env";
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient(supabaseUrl(), supabaseKey(), {
+  return createServerClient<Database>(supabaseUrl(), supabaseKey(), {
     cookies: {
       getAll() {
         return cookieStore.getAll();

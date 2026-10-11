@@ -1,30 +1,26 @@
+import Link from "next/link";
 import { Suspense } from "react";
+import { CompanyRow } from "@/components/figures";
 import { requireOwner } from "@/lib/auth";
+import { getCompanies } from "@/lib/companies";
 import { createClient } from "@/lib/supabase/server";
-import { signOut } from "./login/actions";
 
-// What's coming, in the order the spec builds it (Phase 1).
+// What's still to come in Phase 1, in the order the spec builds it.
 const NEXT_UP = [
-  { title: "My companies", note: "A watchlist of up to twenty, your holdings, and a snapshot every Sunday." },
-  { title: "Company story cards", note: "What each company sells, who pays them, and how they make money." },
+  { title: "Live prices and company story cards", note: "Prices update on their own, and each company gets a page on what it sells and how it makes money." },
   { title: "Weekly brief", note: "Your week in plain English, here and in your inbox on Sunday evening." },
   { title: "Glossary", note: "Tap any term for a one-line explanation, with an example from your own companies." },
 ];
 
 export default function Home() {
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col px-5 pb-8">
-      <header className="flex h-13 items-center justify-between">
-        <span className="text-body-sm font-medium">Investing Companion</span>
-        <form action={signOut}>
-          <button type="submit" className="btn-ghost">
-            Sign out
-          </button>
-        </form>
-      </header>
-
+    <>
       <Suspense fallback={<GreetingSkeleton />}>
         <Greeting />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <MyCompanies />
       </Suspense>
 
       <section className="mt-12 flex flex-col gap-4">
@@ -47,12 +43,12 @@ export default function Home() {
       <footer className="mt-auto pt-12 text-body-sm text-ink-muted">
         This app explains; you decide. Nothing here is financial advice.
       </footer>
-    </main>
+    </>
   );
 }
 
-// The greeting and status read your session and the database, so they
-// stream in after the rest of the page.
+// Greeting by Lagos time of day. Reads your settings, so it streams in after
+// the rest of the page.
 async function Greeting() {
   const owner = await requireOwner();
   const supabase = await createClient();
@@ -70,6 +66,7 @@ async function Greeting() {
       .select("timezone")
       .single());
   }
+  if (error) console.error("settings:", error.message);
 
   const timeZone = settings?.timezone ?? "Africa/Lagos";
   const now = new Date();
@@ -85,47 +82,52 @@ async function Greeting() {
   }).format(now);
 
   return (
-    <section className="flex flex-col gap-6 pt-8">
-      <div className="flex flex-col gap-3">
-        <p className="eyebrow">{date}</p>
-        <h1 className="text-heading-lg">{greeting}</h1>
-        <p className="text-prose text-ink-muted">
-          Nothing to read yet. Your companies, briefs and glossary will appear
-          here as we build them, starting with your <em className="text-ember-text not-italic">watchlist</em>.
-        </p>
-      </div>
+    <section className="flex flex-col gap-3 pt-8">
+      <p className="eyebrow">{date}</p>
+      <h1 className="text-heading-lg">{greeting}</h1>
+    </section>
+  );
+}
 
-      <dl className="card grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 font-mono text-eyebrow">
-        <dt className="text-ink-muted uppercase">Signed in</dt>
-        <dd className="truncate">{owner.email}</dd>
-        <dt className="text-ink-muted uppercase">Database</dt>
-        {settings ? (
-          <dd className="flex items-center gap-2">
-            <span className="size-1.5 rounded-full bg-forest" aria-hidden />
-            Connected
-          </dd>
-        ) : (
-          <dd className="text-crimson">
-            Not reachable{error ? `: ${error.message}` : ""}. Run
-            supabase/migrations/0001_init.sql.
-          </dd>
-        )}
-        <dt className="text-ink-muted uppercase">Time zone</dt>
-        <dd>{timeZone}</dd>
-      </dl>
+// A card per company, holdings first, as the spec's dashboard describes.
+async function MyCompanies() {
+  const companies = await getCompanies();
+
+  if (companies.length === 0) {
+    return (
+      <section className="mt-4 flex flex-col gap-6">
+        <p className="text-prose text-ink-muted">
+          Nothing to read yet. Start by adding the companies you own or are curious about.
+        </p>
+        <Link href="/companies/new" className="btn-primary text-center">
+          Add your first company
+        </Link>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-10 flex flex-col gap-2">
+      <div className="flex items-baseline justify-between">
+        <h2 className="eyebrow">My companies</h2>
+        <Link href="/companies" className="link text-body-sm">
+          See all
+        </Link>
+      </div>
+      <ul className="border-t border-hairline">
+        {companies.slice(0, 6).map((c) => (
+          <CompanyRow key={c.id} company={c} />
+        ))}
+      </ul>
     </section>
   );
 }
 
 function GreetingSkeleton() {
   return (
-    <section className="flex animate-pulse flex-col gap-6 pt-8" aria-hidden>
-      <div className="flex flex-col gap-3">
-        <div className="h-5 w-40 rounded-sm bg-elevated" />
-        <div className="h-11 w-56 rounded-sm bg-elevated" />
-        <div className="h-16 rounded-sm bg-elevated" />
-      </div>
-      <div className="card h-24" />
+    <section className="flex animate-pulse flex-col gap-3 pt-8" aria-hidden>
+      <div className="h-5 w-40 rounded-sm bg-elevated" />
+      <div className="h-11 w-56 rounded-sm bg-elevated" />
     </section>
   );
 }

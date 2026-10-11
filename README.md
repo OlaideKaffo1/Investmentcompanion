@@ -3,7 +3,7 @@
 A private, mobile-first web app that explains the companies and markets I
 follow in plain English. See [SPEC.md](SPEC.md) for the full product spec.
 
-**Status:** Phase 1, step 1: login, database, installable on a phone.
+**Status:** Phase 1, step 2: watchlist, holdings and Sunday snapshots.
 
 ## How it's built
 
@@ -33,7 +33,9 @@ includes a link, for when you're on a computer.
 ### 1. Supabase (free plan)
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. **SQL Editor** → paste and run `supabase/migrations/0001_init.sql`.
+2. **SQL Editor** → paste and run each file in `supabase/migrations/`, in
+   order (`0001_init.sql`, then `0002_watchlist.sql`, …). Each new step that
+   adds a file needs it run once.
 3. **Authentication → Users → Add user → Create new user**: your email, any
    long random password (never used), and tick *Auto Confirm User*.
 4. **Authentication → Sign In / Providers**: turn **off** *Allow new users to
@@ -44,13 +46,24 @@ includes a link, for when you're on a computer.
 6. **Authentication → URL Configuration**: set *Site URL* to the app's Vercel
    address (after step 2 below).
 7. From the **Connect** button (or Project Settings → API Keys), copy the
-   project URL and the **publishable** key.
+   project URL, the **publishable** key and a **secret** key. The secret key
+   is only ever given to Vercel; never put it anywhere else.
 
 ### 2. Vercel (free Hobby plan)
 
 1. Sign in at [vercel.com](https://vercel.com) with GitHub and import this repo.
-2. Add the environment variables from `.env.example`.
+2. Add the environment variables from `.env.example`. For `CRON_SECRET`, any
+   long random string works (e.g. from a password manager).
 3. Deploy. Then put the resulting URL into Supabase's *Site URL* (step 1.6).
+
+## Scheduled jobs
+
+`vercel.json` lists them; Vercel runs them and sends `CRON_SECRET` with each
+call, so nobody else can trigger them.
+
+| Job | When | What |
+| --- | --- | --- |
+| `/api/cron/snapshot` | Sundays 17:00 UTC (6pm Lagos) | Saves each company's price, weekly change and holding value |
 
 ## Local development
 
