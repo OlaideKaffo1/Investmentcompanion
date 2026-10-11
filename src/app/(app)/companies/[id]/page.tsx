@@ -5,10 +5,10 @@ import { Suspense } from "react";
 import { Change } from "@/components/figures";
 import { HistoryChart } from "@/components/history-chart";
 import { getCompany, type Company } from "@/lib/companies";
-import { dayMonth, longDate, money, shortDate, trend } from "@/lib/format";
-import { removeCompany } from "../actions";
+import { longDate, money, monthYear, proseMoney, prosePercent, shortDate, trend } from "@/lib/format";
+import { archiveCompany, deleteCompany } from "../actions";
 import { CompanyForm } from "../company-form";
-import { RemoveButton } from "./remove-button";
+import { ConfirmButton, RestoreForm } from "./archive-controls";
 
 export const metadata: Metadata = { title: "Company" };
 
@@ -27,146 +27,233 @@ export default function CompanyPage({ params }: PageProps<"/companies/[id]">) {
   );
 }
 
+// Order: who it is → the answer (worth now, since you bought) → the chart
+// with what you paid on it → details, history and edit, folded away.
 async function CompanyDetail({ id }: { id: string }) {
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const found = await getCompany(id);
   if (!found) notFound();
-  const { company: c, snapshots } = found;
+  const { company: c, weeks } = found;
   const holding = c.status === "holding";
-  const pricePoints = [...snapshots]
-    .reverse()
-    .filter((s) => s.price != null)
-    .map((s) => ({ date: s.week_of, value: s.price! }));
+  const byValue = holding && c.value != null;
+  const chartWeeks = weeks.filter((w) => (byValue ? w.value : w.price) != null);
 
   return (
     <>
+      {c.archived_at && (
+        <div className="card flex flex-col gap-3">
+          <p className="text-body">
+            You stopped following {c.name} on {longDate(c.archived_at)}. Its history is kept here.
+          </p>
+          <RestoreForm id={c.id} />
+        </div>
+      )}
+
       <div className="flex flex-col gap-3">
         <p className="eyebrow">
           {c.exchange === "NGX" ? "Nigerian Exchange" : "US stock"} · {c.ticker} ·{" "}
-          {holding ? "Holding" : "Watching"}
+          {holding ? "You own shares" : "Watching"}
         </p>
         <h1 className="text-heading-lg">{c.name}</h1>
-        <Summary company={c} />
       </div>
 
-      <dl className="card grid grid-cols-2 gap-x-4 gap-y-5">
-        <Figure label="Latest price">
-          {money(c.last_price, c.currency)}
-          {c.last_price_at && (
-            <small className="block text-body-sm text-ink-muted">
-              {c.price_source === "manual" ? "typed in" : "as of"} {shortDate(c.last_price_at)}
-            </small>
-          )}
-        </Figure>
-        <Figure label="This week">
-          {c.weeklyChangePct != null ? <Change pct={c.weeklyChangePct} /> : "—"}
-        </Figure>
-        {holding && (
-          <>
-            <Figure label="Invested">{money(c.amount_invested, c.currency)}</Figure>
-            <Figure label="Worth now">{money(c.value, c.currency)}</Figure>
-            <Figure label="Shares">
-              {c.shares != null ? c.shares.toLocaleString("en-GB", { maximumFractionDigits: 4 }) : "—"}
-            </Figure>
-            <Figure label="Bought">
-              {c.buy_date ? shortDate(c.buy_date) : "—"}
-              {c.buy_price && (
-                <small className="block text-body-sm text-ink-muted">
-                  at {money(c.buy_price, c.currency)}
-                </small>
-              )}
-            </Figure>
-          </>
-        )}
-      </dl>
+      <Headline company={c} />
 
-      <section className="flex flex-col gap-4">
-        <h2 className="text-heading-sm">Price history</h2>
-        {pricePoints.length >= 2 ? (
-          <HistoryChart label={`${c.name} price by week`} currency={c.currency} points={pricePoints} />
+      <section className="flex flex-col gap-3">
+        <h2 className="eyebrow">{byValue ? "Value by week" : "Price by week"}</h2>
+        {chartWeeks.length >= 2 ? (
+          <HistoryChart
+            label={`${c.name} ${byValue ? "value" : "price"} by week`}
+            currency={c.currency}
+            points={chartWeeks.map((w) => ({ label: w.label, value: (byValue ? w.value : w.price)! }))}
+            reference={
+              byValue && c.amount_invested
+                ? { value: c.amount_invested, label: "You put in" }
+                : holding && c.buy_price
+                  ? { value: c.buy_price, label: "You bought at" }
+                  : undefined
+            }
+          />
         ) : (
           <p className="text-body-sm text-ink-muted">
-            Each Sunday adds a point. The chart appears after the second one.
+            Each Sunday adds a week. The chart appears once there are two.
           </p>
-        )}
-        {snapshots.length > 0 && (
-          <table className="figures w-full text-body-sm">
-            <thead>
-              <tr className="text-left text-ink-muted">
-                <th className="pb-2 font-normal">Week of</th>
-                <th className="pb-2 text-right font-normal">Price</th>
-                <th className="pb-2 text-right font-normal">Change</th>
-                {holding && <th className="pb-2 text-right font-normal">Value</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {snapshots.slice(0, 8).map((s) => (
-                <tr key={s.id} className="border-t border-hairline">
-                  <td className="py-2 pr-3 whitespace-nowrap">{dayMonth(s.week_of)}</td>
-                  <td className="py-2 pr-3 text-right whitespace-nowrap">{money(s.price, s.currency)}</td>
-                  <td className="py-2 pr-3 text-right whitespace-nowrap">
-                    <Change pct={s.weekly_change_pct} />
-                  </td>
-                  {holding && <td className="py-2 text-right whitespace-nowrap">{money(s.value, s.currency)}</td>}
-                </tr>
-              ))}
-            </tbody>
-          </table>
         )}
       </section>
 
-      <details className="group border-t border-hairline pt-4">
-        <summary className="cursor-pointer list-none text-body font-medium">
-          <span className="group-open:hidden">Edit details →</span>
-          <span className="hidden group-open:inline">Edit details ↓</span>
-        </summary>
-        <div className="pt-6">
-          <CompanyForm
-            initial={{
-              id: c.id,
-              ticker: c.ticker,
-              name: c.name,
-              exchange: c.exchange as "US" | "NGX",
-              status: c.status as "holding" | "watching",
-              amount_invested: c.amount_invested,
-              buy_date: c.buy_date,
-              buy_price: c.buy_price,
-              last_price: c.last_price,
-            }}
-          />
-        </div>
-      </details>
+      <div className="flex flex-col">
+        <Fold title="Details">
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-5 pb-4 pt-2">
+            <Figure label="Latest price">
+              {money(c.last_price, c.currency)}
+              {c.last_price_at && (
+                <small className="block text-body-sm text-ink-muted">
+                  {c.price_source === "manual" ? "Typed in" : "As of"} {shortDate(c.last_price_at)}
+                  {c.priceAge ? ` · ${c.priceAge}` : ""}
+                </small>
+              )}
+            </Figure>
+            <Figure label="This week">
+              {c.weeklyChangePct != null ? <Change pct={c.weeklyChangePct} /> : "—"}
+            </Figure>
+            {holding ? (
+              <>
+                <Figure label="You put in">{money(c.amount_invested, c.currency)}</Figure>
+                <Figure label="Shares">
+                  {c.shares != null ? c.shares.toLocaleString("en-GB", { maximumFractionDigits: 4 }) : "—"}
+                </Figure>
+                <Figure label="Bought">
+                  {c.buy_date ? shortDate(c.buy_date) : "—"}
+                  {c.buy_price && (
+                    <small className="block text-body-sm text-ink-muted">at {money(c.buy_price, c.currency)}</small>
+                  )}
+                </Figure>
+              </>
+            ) : (
+              <Figure label="Watching since">{monthYear(c.created_at)}</Figure>
+            )}
+          </dl>
+        </Fold>
 
-      <form action={removeCompany} className="border-t border-hairline pt-4">
-        <input type="hidden" name="id" value={c.id} />
-        <RemoveButton name={c.name} />
-      </form>
+        {weeks.length > 0 && (
+          <Fold title="Week by week">
+            <table className="figures mb-4 w-full text-body-sm">
+              <thead>
+                <tr className="text-left text-ink-muted">
+                  <th className="pb-2 font-normal">Week</th>
+                  <th className="pb-2 text-right font-normal">Price</th>
+                  <th className="pb-2 text-right font-normal">Change</th>
+                  {holding && <th className="pb-2 text-right font-normal">Worth</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {[...weeks].reverse().map((w) => (
+                  <tr key={w.weekOf} className="border-t border-hairline">
+                    <td className="py-2 pr-3 whitespace-nowrap">{w.label.replace("Week to ", "")}</td>
+                    <td className="py-2 pr-3 text-right whitespace-nowrap">{money(w.price, c.currency)}</td>
+                    <td className="py-2 pr-3 text-right whitespace-nowrap">
+                      <Change pct={w.changePct} quiet />
+                    </td>
+                    {holding && <td className="py-2 text-right whitespace-nowrap">{money(w.value, c.currency)}</td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Fold>
+        )}
+
+        {!c.archived_at && (
+          <Fold title="Edit">
+            <div className="pb-6 pt-4">
+              <CompanyForm
+                initial={{
+                  id: c.id,
+                  ticker: c.ticker,
+                  name: c.name,
+                  exchange: c.exchange as "US" | "NGX",
+                  status: c.status as "holding" | "watching",
+                  amount_invested: c.amount_invested,
+                  buy_date: c.buy_date,
+                  buy_price: c.buy_price,
+                  last_price: c.last_price,
+                }}
+              />
+            </div>
+          </Fold>
+        )}
+      </div>
+
+      <div className="pt-2">
+        {c.archived_at ? (
+          <form action={deleteCompany}>
+            <input type="hidden" name="id" value={c.id} />
+            <ConfirmButton
+              className="py-2 text-body-sm text-crimson underline-offset-4 hover:underline"
+              message={`Delete ${c.name} and all its history for good? This can't be undone.`}
+              pendingLabel="Deleting…"
+            >
+              Delete for good
+            </ConfirmButton>
+          </form>
+        ) : (
+          <form action={archiveCompany}>
+            <input type="hidden" name="id" value={c.id} />
+            <ConfirmButton
+              className="btn-ghost py-2"
+              message={`Stop following ${c.name}? It moves to your archive with its history, and you can follow it again any time.`}
+              pendingLabel="Moving…"
+            >
+              Stop following
+            </ConfirmButton>
+          </form>
+        )}
+      </div>
     </>
   );
 }
 
-// One plain-English sentence about where things stand.
-function Summary({ company: c }: { company: Company }) {
-  let text: string;
-  if (c.status === "holding" && c.gain != null && c.buy_date) {
+// The answer, before any detail: what it's worth (or costs) and one sentence
+// on how it's done, in rounded words. Then this week, quietly.
+function Headline({ company: c }: { company: Company }) {
+  const holding = c.status === "holding";
+  const big = holding && c.value != null ? c.value : c.last_price;
+
+  let sentence: string;
+  if (holding && c.gain != null) {
     const dir = trend(c.gain);
-    text =
+    const since = c.buy_date ? `since you bought in ${monthYear(c.buy_date)}` : "on what you put in";
+    sentence =
       dir === "flat"
-        ? `Worth about what you paid on ${longDate(c.buy_date)}.`
-        : `${dir === "up" ? "Up" : "Down"} ${money(Math.abs(c.gain), c.currency)} (${pct(c.gainPct)}) since you bought on ${longDate(c.buy_date)}.`;
-  } else if (c.status === "holding" && c.gain != null) {
-    text = `${trend(c.gain) === "down" ? "Down" : "Up"} ${pct(c.gainPct)} on what you put in.`;
-  } else if (c.status === "holding") {
-    text = "Add what you invested, your buy price and a latest price to see how it's doing.";
+        ? `About what you paid, ${since}.`
+        : `${dir === "up" ? "Up" : "Down"} ${proseMoney(c.gain, c.currency)}, or ${prosePercent(c.gainPct!)}, ${since}.`;
+  } else if (holding && !c.last_price) {
+    sentence = "No price yet, so it can't be valued. Live prices arrive soon, or add one under Edit.";
+  } else if (holding) {
+    sentence = "Add what you put in and your buy price under Edit to see how it's doing.";
   } else if (!c.last_price) {
-    text = "No price yet. Live prices arrive in the next step, or you can type one in below.";
+    sentence = "No price yet. Live prices arrive soon, or add one under Edit.";
   } else {
-    text = `On your watchlist since ${longDate(c.created_at)}.`;
+    sentence = `You've been watching since ${monthYear(c.created_at)}.`;
   }
-  return <p className="text-prose text-ink-muted">{text}</p>;
+
+  return (
+    <section className="flex flex-col gap-2">
+      {big != null && (
+        <>
+          <span className="eyebrow">{holding && c.value != null ? "Worth now" : "Price"}</span>
+          <span className="text-heading-lg">{money(big, c.currency)}</span>
+        </>
+      )}
+      <p className="text-prose text-ink-muted">{sentence}</p>
+      {(c.weeklyChangePct != null || c.priceAge) && (
+        <p className="text-body-sm text-ink-muted">
+          {c.weeklyChangePct != null && (
+            <>
+              <Change pct={c.weeklyChangePct} /> this week
+            </>
+          )}
+          {c.weeklyChangePct != null && c.priceAge && " · "}
+          {c.priceAge && <>price {c.priceAge}</>}
+        </p>
+      )}
+    </section>
+  );
 }
 
-const pct = (n: number | null) => `${Math.abs(n ?? 0).toFixed(1)}%`;
+// A row that opens to reveal detail: for things you look at sometimes.
+function Fold({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <details className="group border-t border-hairline last:border-b">
+      <summary className="flex min-h-13 cursor-pointer list-none items-center justify-between text-body font-medium">
+        {title}
+        <span className="text-ink-muted transition-transform group-open:rotate-90" aria-hidden>
+          →
+        </span>
+      </summary>
+      {children}
+    </details>
+  );
+}
 
 function Figure({ label, children }: { label: string; children: React.ReactNode }) {
   return (

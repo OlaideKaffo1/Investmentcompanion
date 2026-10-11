@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase.from("companies").select("user_id");
+  const { data, error } = await supabase.from("companies").select("user_id").is("archived_at", null);
   if (error) {
     console.error("snapshot: couldn't list companies", error.message);
     return NextResponse.json({ error: "database" }, { status: 500 });

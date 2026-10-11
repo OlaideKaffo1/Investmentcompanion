@@ -1,10 +1,8 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireOwner } from "@/lib/auth";
 import { LAGOS } from "@/lib/format";
-import { takeSnapshot } from "@/lib/snapshots";
 import { createClient } from "@/lib/supabase/server";
 
 export type CompanyFormState = {
@@ -87,7 +85,20 @@ export async function saveCompany(
 
   if (result.error) {
     if (result.error.code === "23505") {
-      return { fieldErrors: { ticker: `${ticker} on ${exchange} is already on your list.` }, values };
+      const { data: existing } = await supabase
+        .from("companies")
+        .select("archived_at")
+        .eq("exchange", exchange)
+        .eq("ticker", ticker)
+        .maybeSingle();
+      return {
+        fieldErrors: {
+          ticker: existing?.archived_at
+            ? `${ticker} is in your archive. Restore it from there to keep its history.`
+            : `${ticker} on ${exchange} is already on your list.`,
+        },
+        values,
+      };
     }
     if (result.error.message.includes("watchlist_full")) {
       return { error: "Your list is full at 20 companies. Remove one to add another.", values };
@@ -99,21 +110,49 @@ export async function saveCompany(
   redirect(`/companies/${result.data.id}`);
 }
 
-export async function removeCompany(formData: FormData) {
+// "Stop following": the company leaves your list but keeps its history in
+// the archive, where it can be restored.
+export async function archiveCompany(formData: FormData) {
   await requireOwner();
   const supabase = await createClient();
-  const { error } = await supabase.from("companies").delete().eq("id", text(formData, "id"));
-  if (error) throw new Error("Couldn't remove the company.");
+  const { error } = await supabase
+    .from("companies")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", text(formData, "id"));
+  if (error) throw new Error("Couldn't move the company to the archive.");
   redirect("/companies");
 }
 
-// The same snapshot Sunday's job takes, run now for this week. Sunday's run
-// replaces it, so it's safe to press any time.
-export async function snapshotNow() {
-  const owner = await requireOwner();
+export async function restoreCompany(
+  _prev: { error?: string },
+  formData: FormData,
+): Promise<{ error?: string }> {
+  await requireOwner();
   const supabase = await createClient();
-  await takeSnapshot(supabase, owner.id);
-  refresh();
+  const id = text(formData, "id");
+  const { error } = await supabase.from("companies").update({ archived_at: null }).eq("id", id);
+  if (error) {
+    return {
+      error: error.message.includes("watchlist_full")
+        ? "Your list is full at 20 companies. Stop following one first."
+        : "Couldn't restore it. Try again in a moment.",
+    };
+  }
+  redirect(`/companies/${id}`);
+}
+
+// Deleting for good is only offered from the archive, and only removes
+// archived companies, so it's always a second, deliberate step.
+export async function deleteCompany(formData: FormData) {
+  await requireOwner();
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("companies")
+    .delete()
+    .eq("id", text(formData, "id"))
+    .not("archived_at", "is", null);
+  if (error) throw new Error("Couldn't delete the company.");
+  redirect("/companies/archive");
 }
 
 function text(formData: FormData, key: string) {

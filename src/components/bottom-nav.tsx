@@ -37,10 +37,12 @@ function Bar({ pathname }: { pathname: string | null }) {
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-full flex-col items-center justify-center gap-1 text-eyebrow transition-colors ${
+                className={`relative flex h-full flex-col items-center justify-center gap-1 text-eyebrow transition-colors ${
                   active ? "text-ink" : "text-ink-muted hover:text-ink"
                 }`}
               >
+                {/* A short ink rule marks where you are, not just a darker label. */}
+                {active && <span className="absolute top-0 h-0.5 w-8 bg-ink" aria-hidden />}
                 <Icon />
                 {label}
               </Link>

@@ -3,7 +3,7 @@
 A private, mobile-first web app that explains the companies and markets I
 follow in plain English. See [SPEC.md](SPEC.md) for the full product spec.
 
-**Status:** Phase 1, step 2: watchlist, holdings and Sunday snapshots.
+**Status:** Phase 1, step 2 plus a UX pass: watchlist, holdings, Sunday snapshots, archive.
 
 ## How it's built
 

@@ -38,7 +38,8 @@ export function sharesHeld(c: {
   return c.amount_invested / c.buy_price;
 }
 
-// Saves this week's row for every company on the watchlist: the latest known
+// Saves this week's row for every company you follow (archived ones keep
+// their history but stop getting new weeks): the latest known
 // price, the change since last week's snapshot, and what each holding is
 // worth. Running it again in the same week replaces that week's rows.
 export async function takeSnapshot(supabase: Client, userId: string, now = new Date()) {
@@ -48,7 +49,8 @@ export async function takeSnapshot(supabase: Client, userId: string, now = new D
     supabase
       .from("companies")
       .select("id, status, currency, last_price, last_price_at, amount_invested, buy_price")
-      .eq("user_id", userId),
+      .eq("user_id", userId)
+      .is("archived_at", null),
     supabase
       .from("snapshots")
       .select("company_id, price")

@@ -7,14 +7,14 @@ export type Database = {
           Tables: {
             "companies": {
                   Row: {
-                    "amount_invested": number | null,"buy_date": string | null,"buy_price": number | null,"created_at": string,"currency": string | null,"exchange": string,"id": string,"last_price": number | null,"last_price_at": string | null,"name": string,"price_source": string | null,"status": string,"ticker": string,"updated_at": string,"user_id": string
+                    "amount_invested": number | null,"archived_at": string | null,"buy_date": string | null,"buy_price": number | null,"created_at": string,"currency": string | null,"exchange": string,"id": string,"last_price": number | null,"last_price_at": string | null,"name": string,"price_source": string | null,"status": string,"ticker": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_invested"?: number | null,"buy_date"?: string | null,"buy_price"?: number | null,"created_at"?: string,"currency"?: never,"exchange": string,"id"?: string,"last_price"?: number | null,"last_price_at"?: string | null,"name": string,"price_source"?: string | null,"status"?: string,"ticker": string,"updated_at"?: string,"user_id"?: string
+                    "amount_invested"?: number | null,"archived_at"?: string | null,"buy_date"?: string | null,"buy_price"?: number | null,"created_at"?: string,"currency"?: never,"exchange": string,"id"?: string,"last_price"?: number | null,"last_price_at"?: string | null,"name": string,"price_source"?: string | null,"status"?: string,"ticker": string,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "amount_invested"?: number | null,"buy_date"?: string | null,"buy_price"?: number | null,"created_at"?: string,"currency"?: never,"exchange"?: string,"id"?: string,"last_price"?: number | null,"last_price_at"?: string | null,"name"?: string,"price_source"?: string | null,"status"?: string,"ticker"?: string,"updated_at"?: string,"user_id"?: string
+                    "amount_invested"?: number | null,"archived_at"?: string | null,"buy_date"?: string | null,"buy_price"?: number | null,"created_at"?: string,"currency"?: never,"exchange"?: string,"id"?: string,"last_price"?: number | null,"last_price_at"?: string | null,"name"?: string,"price_source"?: string | null,"status"?: string,"ticker"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     

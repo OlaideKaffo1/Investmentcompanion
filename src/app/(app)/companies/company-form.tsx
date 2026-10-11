@@ -60,13 +60,13 @@ export function CompanyForm({ initial = {} }: { initial?: CompanyFormValues }) {
       </Field>
 
       <Segmented
-        label="I am"
+        label="Do you own shares?"
         name="status"
         value={status}
         onChange={(v) => setStatus(v as "holding" | "watching")}
         options={[
-          { value: "watching", label: "Watching" },
-          { value: "holding", label: "Holding" },
+          { value: "holding", label: "Yes" },
+          { value: "watching", label: "Not yet" },
         ]}
         error={errors.status}
       />
@@ -90,13 +90,22 @@ export function CompanyForm({ initial = {} }: { initial?: CompanyFormValues }) {
         </fieldset>
       )}
 
-      <Field
-        label={`Latest price (${symbol})`}
-        hint="Optional. Live prices arrive in the next step; until then you can type it in."
-        error={errors.last_price}
-      >
-        <input name="last_price" inputMode="decimal" defaultValue={v("last_price")} className="field figures" />
-      </Field>
+      {/* A stopgap until live prices arrive, so it stays out of the way. */}
+      <details className="group" open={!!v("last_price") || !!errors.last_price}>
+        <summary className="btn-ghost cursor-pointer list-none">
+          <span className="group-open:hidden">+ Add a price yourself</span>
+          <span className="hidden group-open:inline">Price you typed in</span>
+        </summary>
+        <div className="pt-3">
+          <Field
+            label={`Latest price (${symbol})`}
+            hint="Live prices arrive soon. Until then, a price you type is used for values and history."
+            error={errors.last_price}
+          >
+            <input name="last_price" inputMode="decimal" defaultValue={v("last_price")} className="field figures" />
+          </Field>
+        </div>
+      </details>
 
       {state.error && <p className="text-body-sm text-crimson">{state.error}</p>}
 
