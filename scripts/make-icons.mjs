@@ -2,7 +2,9 @@
 // Run with: node scripts/make-icons.mjs
 import sharp from "sharp";
 
-const BG = "#1f6b4f";
+const BG = "#26251e"; // ink
+const LINE = "#f7f7f4"; // parchment
+const DOT = "#f54e00"; // ember
 
 // `pad` shrinks the drawing toward the centre. Maskable icons need extra
 // room because Android may crop them to a circle.
@@ -13,10 +15,10 @@ function svg({ rounded, pad }) {
   const p = (x, y) => `${o + x * inner},${o + y * inner}`;
   const line = [p(0.18, 0.72), p(0.4, 0.5), p(0.56, 0.62), p(0.82, 0.3)].join(" ");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 ${s} ${s}">
-  <rect width="${s}" height="${s}" rx="${rounded ? 112 : 0}" fill="${BG}"/>
-  <polyline points="${line}" fill="none" stroke="#ffffff" stroke-width="${inner * 0.085}"
+  <rect width="${s}" height="${s}" rx="${rounded ? 96 : 0}" fill="${BG}"/>
+  <polyline points="${line}" fill="none" stroke="${LINE}" stroke-width="${inner * 0.085}"
     stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="${o + 0.82 * inner}" cy="${o + 0.3 * inner}" r="${inner * 0.075}" fill="#f2c94c"/>
+  <circle cx="${o + 0.82 * inner}" cy="${o + 0.3 * inner}" r="${inner * 0.075}" fill="${DOT}"/>
 </svg>`;
 }
 

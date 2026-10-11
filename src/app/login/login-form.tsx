@@ -14,11 +14,11 @@ export function LoginForm() {
         <form action={action} className="flex flex-col gap-4">
           <input type="hidden" name="intent" value="verify" />
           <input type="hidden" name="email" value={state.email} />
-          <p className="text-sm text-muted">
+          <p className="text-body-sm text-ink-muted">
             {state.message ?? "Enter the code we emailed you."}
           </p>
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Sign-in code</span>
+            <span className="eyebrow">Sign-in code</span>
             <input
               key="code"
               name="code"
@@ -27,10 +27,10 @@ export function LoginForm() {
               pattern="[0-9 ]*"
               required
               autoFocus
-              className="field text-center text-2xl tracking-[0.3em]"
+              className="field figures text-center font-mono text-heading-sm tracking-[0.3em]"
             />
           </label>
-          {state.error && <p className="text-sm text-danger">{state.error}</p>}
+          {state.error && <p className="text-body-sm text-crimson">{state.error}</p>}
           <button type="submit" disabled={pending} className="btn-primary">
             {pending ? "Checking…" : "Sign in"}
           </button>
@@ -41,7 +41,7 @@ export function LoginForm() {
           <button
             type="submit"
             disabled={pending}
-            className="w-full text-sm text-muted underline underline-offset-4"
+            className="btn-ghost w-full"
           >
             Send a new code
           </button>
@@ -54,7 +54,7 @@ export function LoginForm() {
     <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="intent" value="send" />
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium">Email</span>
+        <span className="eyebrow">Email</span>
         <input
           key="email"
           name="email"
@@ -68,7 +68,7 @@ export function LoginForm() {
           placeholder="you@example.com"
         />
       </label>
-      {state.error && <p className="text-sm text-danger">{state.error}</p>}
+      {state.error && <p className="text-body-sm text-crimson">{state.error}</p>}
       <button type="submit" disabled={pending} className="btn-primary">
         {pending ? "Sending…" : "Email me a sign-in code"}
       </button>

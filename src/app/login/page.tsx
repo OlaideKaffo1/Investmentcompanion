@@ -5,11 +5,12 @@ export const metadata: Metadata = { title: "Sign in" };
 
 export default function LoginPage() {
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-8 px-6 py-12">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold">Investing Companion</h1>
-        <p className="text-muted">
-          A private app. Sign in with the code we email you.
+    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-10 px-6 py-12">
+      <div className="flex flex-col gap-3">
+        <p className="eyebrow">Private</p>
+        <h1 className="text-heading-lg">Investing Companion</h1>
+        <p className="font-serif text-prose text-ink-muted">
+          The companies and markets you follow, in plain English.
         </p>
       </div>
       <LoginForm />

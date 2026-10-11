@@ -1,39 +1,94 @@
 @import "tailwindcss";
 
+/*
+ * Visual language: "warm parchment" (after the Cursor style reference).
+ * Cream paper, warm ink, one ember accent used only on text. Headlines stay
+ * at weight 400 and tighten as they grow. Flat surfaces, hairline borders,
+ * 4px corners. A serif carries prose; a mono carries labels and metadata.
+ *
+ * Small-text colours are nudged a shade deeper than the reference so they
+ * stay readable on a phone (at least 4.5:1 contrast).
+ */
 :root {
-  --background: #f7f6f2;
-  --surface: #ffffff;
-  --foreground: #1c1f1d;
-  --muted: #5d6560;
-  --border: #e2e0d8;
-  --accent: #1f6b4f;
-  --accent-foreground: #ffffff;
-  --danger: #b42318;
+  --canvas: #f7f7f4; /* parchment: page */
+  --card: #f2f1ed; /* bone: cards, inputs */
+  --elevated: #e6e5e0; /* linen: secondary buttons, raised tiles */
+  --line: #cdcdc9; /* stone: dividers */
+  --ink: #26251e; /* primary text, primary button */
+  --ink-muted: #6b6a64; /* secondary text */
+  --ink-faint: #a1a19f; /* decorative only: icons, placeholders */
+  --on-ink: #f7f7f4; /* text on an ink button */
+  --ember: #f54e00; /* decorative accent: dots, rules */
+  --ember-text: #c73e00; /* links and emphasised words */
+  --forest: #34785c;
+  --crimson: #cf2d56;
+  --hairline: color-mix(in oklab, var(--ink) 9%, transparent);
+  --selection: #8bc4f8;
 }
 
+/* Dark: the same paper at night. Warm charcoal, never pure black. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #111412;
-    --surface: #1a1e1b;
-    --foreground: #e9ece9;
-    --muted: #a0a9a3;
-    --border: #2b312d;
-    --accent: #5cc29a;
-    --accent-foreground: #0d1f17;
-    --danger: #f97066;
+    --canvas: #161511;
+    --card: #1e1d18;
+    --elevated: #2a2923;
+    --line: #3a3932;
+    --ink: #ecebe6;
+    --ink-muted: #a3a29b;
+    --ink-faint: #6a6963;
+    --on-ink: #161511;
+    --ember: #ff6a24;
+    --ember-text: #ff7a3d;
+    --forest: #5fae8c;
+    --crimson: #f0668a;
+    --hairline: color-mix(in oklab, var(--ink) 12%, transparent);
+    --selection: #2f5f8a;
   }
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-surface: var(--surface);
-  --color-foreground: var(--foreground);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-danger: var(--danger);
-  --font-sans: var(--font-geist-sans);
+  --color-canvas: var(--canvas);
+  --color-card: var(--card);
+  --color-elevated: var(--elevated);
+  --color-line: var(--line);
+  --color-hairline: var(--hairline);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-on-ink: var(--on-ink);
+  --color-ember: var(--ember);
+  --color-ember-text: var(--ember-text);
+  --color-forest: var(--forest);
+  --color-crimson: var(--crimson);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-garamond), "Iowan Old Style", Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+
+  /* Type scale: tracking tightens as size grows. */
+  --text-eyebrow: 12px;
+  --text-eyebrow--line-height: 1.6;
+  --text-eyebrow--letter-spacing: 0.04em;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 1.5;
+  --text-body-sm--letter-spacing: 0.01em;
+  --text-body: 16px;
+  --text-body--line-height: 1.5;
+  --text-prose: 18px;
+  --text-prose--line-height: 1.45;
+  --text-heading-sm: 22px;
+  --text-heading-sm--line-height: 1.3;
+  --text-heading-sm--letter-spacing: -0.005em;
+  --text-heading: 26px;
+  --text-heading--line-height: 1.25;
+  --text-heading--letter-spacing: -0.012em;
+  --text-heading-lg: 36px;
+  --text-heading-lg--line-height: 1.2;
+  --text-heading-lg--letter-spacing: -0.02em;
 }
 
 html {
@@ -42,21 +97,40 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--canvas);
+  color: var(--ink);
   /* Keep content clear of the notch and home bar when opened from the home screen. */
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
+::selection {
+  background: var(--selection);
+}
+
 @layer components {
+  /* Inputs: 16px text so iPhone doesn't zoom in when you tap them. */
   .field {
-    @apply w-full rounded-xl border border-border bg-surface px-4 py-3 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30;
+    @apply w-full rounded-sm border border-hairline bg-card px-3 py-3 text-body text-ink outline-none placeholder:text-ink-faint focus:border-ink;
   }
   .btn-primary {
-    @apply w-full rounded-xl bg-accent px-4 py-3 text-base font-medium text-accent-foreground transition-opacity disabled:opacity-60;
+    @apply w-full rounded-sm bg-ink px-5 py-3 text-body text-on-ink transition-opacity duration-150 disabled:opacity-60;
+  }
+  .btn-ghost {
+    @apply text-body-sm text-ink-muted underline-offset-4 transition-colors duration-150 hover:text-ink hover:underline;
+  }
+  .link {
+    @apply text-ember-text underline-offset-4 hover:underline;
   }
   .card {
-    @apply rounded-2xl border border-border bg-surface p-4;
+    @apply rounded-sm border border-hairline bg-card p-5;
+  }
+  /* Mono metadata labels: dates, section names, status. */
+  .eyebrow {
+    @apply font-mono text-eyebrow uppercase text-ink-muted;
+  }
+  /* Prices and figures line up in columns. */
+  .figures {
+    font-variant-numeric: tabular-nums;
   }
 }
